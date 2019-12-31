@@ -1,0 +1,171 @@
+\documentclass[11pt]{article}
+
+\usepackage{graphicx}
+\usepackage{amssymb,amsmath}
+\usepackage{natbib}
+\usepackage{fullpage}
+\usepackage{xcolor}
+\usepackage{hyperref} 
+\usepackage{listings}
+
+%\usepackage{amsthm,amsmath,amsfonts,amssymb,mathrsfs}
+%\usepackage{multirow}
+\usepackage{bm,bbm}
+
+% Customizing captions and float behavior
+\usepackage[format=plain,labelformat=empty,font=small]{caption}
+\usepackage{placeins}
+%\renewcommand{\familydefault}{cmss}
+\renewcommand{\[}{\begin{equation}}
+\renewcommand{\]}{\end{equation}}
+
+\begin{document}
+
+%\noindent\bfseries\Large
+%Support vector machine with weight constraints\\
+%\normalsize\mdseries
+%\noindent\mdseries\large
+%Man Yi Yim$^{1,2,3}$, Lorenzo A Sadun$^{4}$, Ila R Fiete$^{1,3,*}$, Thibaud Taillefumier$^{1,2,4,*}$\\[1mm]
+
+\section*{Support vector machine with weight constraints}
+Support vector machine (SVM) is a binary classifier with optimal hyperplane that separates the two classes of linear separable patterns. Support vectors are the patterns that lie closest to the hyperplane and are thus most difficult to classify. Maximum margin $\kappa$ is defined as two times the shortest distance from the closest patterns to the optimal hyperplane.
+
+\subsection*{Formalism of standard SVM}
+Let $\textbf{x}_i\in\mathbb{R^N}, i=1,\ldots,P,$ be the input patterns and $\textbf{y}\in[-1,1]^P$ be the labels for the $P$ patterns. Also, let $\textbf{w}$ and $b$ be the optimal weights and bias to achieve the maximum margin $\kappa$. For any pattern $i$, we have, for some $\epsilon\in\mathbb{R}$,
+\begin{eqnarray}
+y_i(\textbf{w}\cdot\textbf{x}_i+b) \geq \epsilon.
+\label{svm:gen}
+\end{eqnarray}
+Let $\textbf{x}_+$ and $\textbf{x}_-$ be the support vectors on the opposite sides of the hyperplane. Since Eq. \ref{svm:gen} is linear, without loss of generality, we set $\epsilon$ to 1. The margin $\kappa$ is given by
+\begin{eqnarray}
+\kappa &=& ||\textbf{e}_w\cdot\textbf{x}_+ - \textbf{e}_w\cdot\textbf{x}_-|| \nonumber\\
+&=& \frac{||(1-b)-(-1-b)||}{||\textbf{w}||}\nonumber\\
+&=& \frac{2}{||\textbf{w}||}
+\end{eqnarray}
+where $\textbf{e}_w=\textbf{w}/||\textbf{w}||$ is the unit vector of $\textbf{w}$. The margin can be maximized by minimizing $||\textbf{w}||$ using quadratic programming. We minimize 
+\begin{eqnarray}
+\frac{1}{2}||\textbf{w}||^2
+\end{eqnarray}
+subject to the $P$ constraints
+\begin{eqnarray}
+y_i(\textbf{w}\cdot\textbf{x}_i+b) - 1 \geq 0, \forall i=1,\ldots,P.
+\end{eqnarray}
+This is a constrained optimization problem that can be solved using the Lagrangian multipler method. Because it is quadratic, the surface is a paraboloid with a single global minimum. The Langrangian is given by
+\begin{eqnarray}
+L(\textbf{w},b) = \frac{1}{2}||\textbf{w}||^2 - \sum_{i=1}^{P}\alpha_i[y_i(\textbf{w}\cdot\textbf{x}_i+b) - 1].
+\end{eqnarray}
+Differentiating the Langrangian with respect to $\textbf{w}$ and $b$ yields
+\begin{eqnarray}
+\frac{\partial L}{\partial \textbf{w}} = \textbf{w} - \sum_{i=1}^{P}\alpha_iy_i\textbf{x}_i  &\Rightarrow&  \textbf{w} = \sum_{i=1}^{P}\alpha_iy_i\textbf{x}_i\\
+\frac{\partial L}{\partial b} = - \sum_{i=1}^{P}\alpha_iy_i  &\Rightarrow&  \sum_{i=1}^{P}\alpha_iy_i  = 0.
+\end{eqnarray}
+The Lagrangian dual problem can be applied here by rewriting the Langrangian as
+\begin{eqnarray}
+L(\alpha_i) = \sum_{i=1}^{P}\alpha_i-\frac{1}{2}\sum_{i=1}^{P}\sum_{j=1}^{P}\alpha_i\alpha_jy_iy_j\textbf{x}_i\cdot\textbf{x}_j.
+\end{eqnarray}
+Differentiating the Langrangian with respect to $\alpha_j$ gives
+\begin{eqnarray}
+\frac{\partial L}{\partial \alpha_j} = 1 - \sum_{i=1}^{P}\alpha_iy_iy_j\textbf{x}_i\cdot\textbf{x}_j &\Rightarrow& \sum_{i=1}^{P}\alpha_iy_iy_j\textbf{x}_i\cdot\textbf{x}_j = 1.
+\end{eqnarray}
+We can solve for all $\alpha_j, j=1,\ldots,P$, and thus $\textbf{w}$ and $b$.
+\subsection*{Standard SVM using sklearn}
+For the above implementation of SVM using sklearn, the full documentation can be found below:\\
+\href{https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html}{https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html}
+\\
+\begin{lstlisting}
+def svm(X,Y):
+	w = np.zeros(X.shape[0])
+	from sklearn import svm
+	hyp = svm.SVC(kernel='linear',C=10000,cache_size=20000,tol=1e-5)
+	hyp.fit(X.T,Y)
+	b = hyp.intercept_[0]
+	for j in range(hyp.support_.size):
+		w += hyp.dual_coef_[0][j]*hyp.support_vectors_[j]
+	if abs(np.sum(np.abs(Y-dec))) == 0:
+		return w,b,2./pylab.norm(w)
+\end{lstlisting}
+\subsection*{Standard SVM using quadratic programming}
+For more flexible implementation of SVM, the full documentation can be found below:\\
+\href{https://pypi.org/project/qpsolvers/}{https://pypi.org/project/qpsolvers/}.
+The sections below require the use of quadratic programming.
+
+\subsection*{SVM with no bias}
+To implement SVM with no bias, we can simply discard all the terms with bias $b$ in the above formulation. That is, we minimize 
+\begin{eqnarray}
+\frac{1}{2}||\textbf{w}||^2
+\end{eqnarray}
+subject to the $P$ constraints
+\begin{eqnarray}
+y_i(\textbf{w}\cdot\textbf{x}_i) - 1 \geq 0, \forall i=1,\ldots,P.
+\end{eqnarray}
+
+\subsection*{SVM with weight constraints}
+We consider non-negativity (equivalent to non-positivity) constraints here only. Other kinds of weight and bias contraints can be incorporated by modifying the formulation below.
+Again,  we minimize 
+\begin{eqnarray}
+\frac{1}{2}||\textbf{w}||^2
+\end{eqnarray}
+subject to the $P+N$ constraints ($P$ existing and $N$ additional)
+\begin{eqnarray}
+y_i(\textbf{w}\cdot\textbf{x}_i +b)- 1 \geq 0, \forall i=1,\ldots,P
+\end{eqnarray}
+and 
+\begin{eqnarray}
+\textbf{w} \geq \textbf{0}, \forall i=1,\ldots,N.
+\end{eqnarray}
+The general purpose implementation of SVM:
+\begin{lstlisting}
+def svm_qp(x,y,is_bias=1,is_wconstrained=1):
+	import qpsolvers
+	R = x.shape[1]
+	G = -(x*y).T
+	if is_bias:
+		N = x.shape[0] + 1
+		G = np.append(G.T,-y)
+		G = G.reshape(N,R)
+		G = G.T
+		P = np.identity(N)
+		P[-1,-1] = 1e-12    # regularization
+	else:
+		N = x.shape[0]
+		P = np.identity(N)
+	if is_wconstrained:
+		if is_bias:
+			G = np.append(G,-np.identity(N)[:N-1,:])
+			G = G.reshape(R+N-1,N)
+			h = np.array([-1.]*R+[0]*(N-1))
+		else:
+			G = np.append(G,-np.identity(N))
+			G = G.reshape(R+N,N)
+			h = np.array([-1.]*R+[0]*N)
+	else:
+		h = np.array([-1.]*R)
+		w = qpsolvers.solve_qp(P,np.zeros(N),G,h)
+	if is_bias:
+		return w[:-1],w[-1],2/pylab.norm(w[:-1])
+	else:
+		return w,2/pylab.norm(w)
+\end{lstlisting}
+
+%\begin{eqnarray}
+%f_{{\bm{w}},\theta}(\bm{x}_j) = \left\{
+%\begin{array}{ll}
+%1 & \mbox{if } \bm{w}\cdot\bm{x}_j-\theta > 0 \, ,\\
+%-1 & \mbox{otherwise}\, .
+%\end{array} 
+%\right.
+%\end{eqnarray}
+
+
+%\begin{figure}[h]
+%	\centering
+%	\includegraphics[scale=0.6]{fig2}
+%	\caption{\footnotesize {\bf{Figure~\ref{fig2}. Counting realizable field arrangements in a place-cell perceptron.}} (A) } 
+%	\label{fig2}
+%\end{figure}
+
+
+%\bibliographystyle{neuron}
+%\bibliography{single}
+
+\end{document}
