@@ -1,4 +1,4 @@
-# SVM_weight_constraint
+# SVM_weight_constraints
 
 This Python code returns the weights, bias (if any) and margin using more general support-vector machine (SVM) with optional bias and weight constraints.
 
