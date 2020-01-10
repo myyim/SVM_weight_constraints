@@ -8,5 +8,8 @@ Support vector machine (SVM) is a binary classifer with optimal hyperplane that 
 # More general SVM with optional bias and weight constraints
 svm_standard performs the standard SVM using sklearn package. svm_qp implements the more general SVM with optional bias and weight constraints. Examples are given for illustration.
 
+# Contact
+I have written some notes on the implementation of SVMs with constraints. The notes can be shared upon request (manyi.yim@gmail.com).
+
 # License
 This project is licensed under the MIT License.
